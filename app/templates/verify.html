@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto w-full mt-10">
+    <div class="bg-dark-800 border border-slate-700 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+
+        <h2 class="text-3xl font-bold mb-2">Verificar Integridad</h2>
+        <p class="text-slate-400 mb-8">Sube un archivo sospechoso. Compararemos su huella digital con nuestra base de
+            datos para detectar si ha sido alterado.</p>
+
+        {% if error %}
+        <div class="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg mb-6 flex items-start gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+
+        <form action="/verify/" method="post" enctype="multipart/form-data" class="space-y-10">
+
+            <!-- Paso 1: Archivo Sospechoso -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 border-b border-slate-700 pb-2">
+                    <span
+                        class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-500 text-white font-bold text-lg">1</span>
+                    <h3 class="text-xl font-bold text-white">Sube el Archivo a Comparar</h3>
+                </div>
+                <p class="text-slate-400 text-sm">Selecciona el archivo que deseas verificar para saber si ha sido
+                    alterado.</p>
+
+                <div
+                    class="border-2 border-dashed border-slate-600 rounded-xl p-8 text-center hover:border-brand-500 hover:bg-brand-500/5 transition-all relative group cursor-pointer bg-dark-900/50 flex flex-col items-center justify-center min-h-[200px]">
+                    <input type="file" name="file" id="file"
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" required>
+                    <div id="dropzone-content"
+                        class="pointer-events-none relative z-0 flex flex-col items-center justify-center w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-10 w-10 mx-auto text-slate-400 group-hover:text-brand-400 transition-colors mb-3"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="text-slate-300 font-medium">Haz clic o arrastra el archivo aquí</p>
+                    </div>
+                    <!-- Previsualización -->
+                    <div id="preview-container"
+                        class="hidden pointer-events-none z-0 flex flex-col items-center justify-center w-full">
+                        <img id="image-preview" src="" alt="Previsualización"
+                            class="hidden h-32 object-contain mb-3 rounded shadow-lg border border-slate-700">
+                        <div id="file-icon" class="hidden text-brand-400 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <p id="file-name" class="text-white font-bold text-sm truncate max-w-[80%] px-2"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 2: Selección del Original -->
+            <div class="space-y-6">
+                <div class="flex items-center gap-3 border-b border-slate-700 pb-2">
+                    <span
+                        class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-500 text-white font-bold text-lg">2</span>
+                    <h3 class="text-xl font-bold text-white">Selecciona el Documento Original</h3>
+                </div>
+                <p class="text-slate-400 text-sm">Elige de tu historial contra qué documento original quieres comparar
+                    el archivo sospechoso.</p>
+
+                {% if documentos %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    {% for doc in documentos %}
+                    <div
+                        class="bg-dark-800 border border-slate-700/50 rounded-2xl overflow-hidden shadow-lg hover:border-brand-500 transition-all flex flex-col relative group">
+
+                        <!-- Miniatura o Icono -->
+                        <div
+                            class="h-40 bg-dark-900 border-b border-slate-700 flex items-center justify-center overflow-hidden relative">
+                            {% if doc.tipo_archivo in ['jpg', 'jpeg', 'png'] %}
+                            <img src="/uploads/{{ doc.hash_sha256[:10] }}_{{ doc.nombre_archivo }}"
+                                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
+                            {% else %}
+                            <div class="text-slate-500 group-hover:text-brand-400 transition-colors">
+                                {% if doc.tipo_archivo == 'pdf' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                {% elif doc.tipo_archivo == 'docx' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                {% else %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                                </svg>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <span
+                                class="absolute top-2 right-2 px-2 py-1 bg-dark-900/80 backdrop-blur text-[10px] font-bold uppercase tracking-wider text-slate-300 rounded border border-slate-600">
+                                {{ doc.tipo_archivo }}
+                            </span>
+                        </div>
+
+                        <!-- Detalles -->
+                        <div class="p-5 flex-grow">
+                            <h3 class="font-bold text-white truncate mb-1" title="{{ doc.nombre_archivo }}">{{
+                                doc.nombre_archivo }}</h3>
+                            <p class="text-xs text-slate-400 mb-3">{{ doc.fecha_registro.strftime('%d %b %Y, %H:%M') }}
+                            </p>
+                            <p
+                                class="font-mono text-[10px] text-brand-300 truncate p-2 bg-dark-900 rounded border border-slate-700">
+                                {{ doc.hash_sha256 }}</p>
+                        </div>
+
+                        <!-- Botón Submit Específico -->
+                        <div class="p-4 bg-dark-900/50 border-t border-slate-700/50">
+                            <button type="submit" name="hash_original" value="{{ doc.hash_sha256 }}"
+                                class="w-full py-2.5 bg-brand-600/20 hover:bg-brand-600 text-brand-300 hover:text-white border border-brand-500/50 hover:border-brand-500 rounded-lg font-bold transition-all shadow-[0_0_15px_-5px_rgba(99,102,241,0)] hover:shadow-[0_0_15px_-5px_rgba(99,102,241,0.5)] flex items-center justify-center gap-2">
+                                Verificar contra este
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div
+                    class="bg-yellow-500/10 border border-yellow-500/50 text-yellow-400 p-6 rounded-2xl text-center flex flex-col items-center gap-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-yellow-500/80" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">No tienes documentos en tu historial</h3>
+                        <p class="max-w-md mx-auto">Para poder verificar la integridad de un archivo, primero debes
+                            haber registrado el documento original en la plataforma.</p>
+                    </div>
+                    <a href="/upload"
+                        class="mt-2 bg-yellow-500 text-dark-900 hover:bg-yellow-400 px-6 py-2 rounded-xl font-bold transition-colors">Ir
+                        a Registrar Documento</a>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Código para previsualización del archivo sospechoso
+    document.getElementById('file').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        const dropzoneContent = document.getElementById('dropzone-content');
+        const previewContainer = document.getElementById('preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const fileIcon = document.getElementById('file-icon');
+        const fileName = document.getElementById('file-name');
+
+        if (!file) {
+            dropzoneContent.classList.remove('hidden');
+            previewContainer.classList.add('hidden');
+            return;
+        }
+
+        dropzoneContent.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+        imagePreview.classList.add('hidden');
+        fileIcon.classList.add('hidden');
+        imagePreview.src = '';
+        fileName.textContent = file.name;
+
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                imagePreview.src = e.target.result;
+                imagePreview.classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            fileIcon.classList.remove('hidden');
+        }
+    });
+</script>
+{% endblock %}

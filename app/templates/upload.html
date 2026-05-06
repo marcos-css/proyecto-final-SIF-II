@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto w-full mt-10">
+    <div class="bg-dark-800 border border-slate-700 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+        <!-- Glow effect -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 to-purple-500"></div>
+        
+        <h2 class="text-3xl font-bold mb-2">Registrar Documento</h2>
+        <p class="text-slate-400 mb-8">Sube tu archivo para generar su hash inmutable, extraer metadatos y asegurar su autenticidad.</p>
+
+        {% if error %}
+        <div class="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg mb-6 flex items-start gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+
+        <form action="/upload/" method="post" enctype="multipart/form-data" class="space-y-6">
+            
+            <!-- File Input -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-slate-300">Archivo</label>
+                <div class="border-2 border-dashed border-slate-600 rounded-xl p-8 text-center hover:border-brand-500 hover:bg-brand-500/5 transition-all relative group cursor-pointer flex flex-col items-center justify-center min-h-[200px]">
+                    <input type="file" name="file" id="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" required accept=".pdf,.docx,.jpg,.jpeg,.png,.mp3">
+                    <div id="dropzone-content" class="pointer-events-none relative z-0 flex flex-col items-center justify-center w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-slate-400 group-hover:text-brand-400 transition-colors mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="text-slate-300 font-medium">Haz clic o arrastra un archivo aquí</p>
+                        <p class="text-slate-500 text-sm mt-1">Soporta PDF, DOCX, JPG, PNG, MP3</p>
+                    </div>
+                    <!-- Contenedor para previsualización -->
+                    <div id="preview-container" class="hidden pointer-events-none z-0 flex flex-col items-center justify-center w-full">
+                        <img id="image-preview" src="" alt="Previsualización" class="hidden h-32 object-contain mb-3 rounded shadow-lg border border-slate-700">
+                        <div id="file-icon" class="hidden text-brand-400 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <p id="file-name" class="text-white font-bold text-sm truncate max-w-[80%] px-2"></p>
+                        <p id="file-size" class="text-brand-300 text-xs mt-1"></p>
+                        <p class="text-slate-400 text-xs mt-2 italic">Haz clic de nuevo para cambiar el archivo</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Watermark Toggle -->
+            <div class="bg-dark-900/50 p-5 rounded-xl border border-slate-700/50 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-slate-200 font-medium">Aplicar Marca de Agua</h3>
+                        <p class="text-slate-400 text-sm">Protege visualmente o mediante esteganografía.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="aplicar_marca" id="aplicar_marca" value="true" class="sr-only peer" onchange="toggleWatermarkOptions()">
+                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+                    </label>
+                </div>
+
+                <!-- Watermark Options (Hidden by default) -->
+                <div id="watermark_options" class="hidden space-y-4 pt-4 border-t border-slate-700/50">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Tipo de Marca</label>
+                        <select name="tipo_marca" class="w-full bg-dark-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none">
+                            <option value="visible">Visible (Texto superpuesto)</option>
+                            <option value="invisible">Invisible (Metadatos/Esteganografía)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Texto de la Marca</label>
+                        <input type="text" name="texto_marca" placeholder="Ej: Propiedad de SIF II" class="w-full bg-dark-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-lg transition-all shadow-[0_4px_20px_-5px_rgba(99,102,241,0.5)]">
+                Procesar y Registrar
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleWatermarkOptions() {
+        const checkbox = document.getElementById('aplicar_marca');
+        const options = document.getElementById('watermark_options');
+        if (checkbox.checked) {
+            options.classList.remove('hidden');
+        } else {
+            options.classList.add('hidden');
+        }
+    }
+
+    // Código para previsualización de archivos
+    document.getElementById('file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const dropzoneContent = document.getElementById('dropzone-content');
+        const previewContainer = document.getElementById('preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const fileIcon = document.getElementById('file-icon');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+
+        if (!file) {
+            dropzoneContent.classList.remove('hidden');
+            previewContainer.classList.add('hidden');
+            return;
+        }
+
+        // Mostrar contenedor de previsualización y ocultar el texto original
+        dropzoneContent.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+
+        // Resetear ambos visualizadores
+        imagePreview.classList.add('hidden');
+        fileIcon.classList.add('hidden');
+        imagePreview.src = '';
+
+        // Formatear tamaño
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        
+        fileName.textContent = file.name;
+        fileSize.textContent = `${sizeMB} MB`;
+
+        // Si es imagen, leer y mostrar miniatura
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            // Mostrar ícono de documento
+            fileIcon.classList.remove('hidden');
+        }
+    });
+</script>
+{% endblock %}
