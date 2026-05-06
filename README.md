@@ -23,8 +23,7 @@ Para ejecutar este proyecto, solo necesitas tener instalado:
    ```
 
 3. **Acceder a la aplicación**:
-   Abre tu navegador web y visita:
-    **http://localhost:8000**
+   Abre tu navegador web y visita: **http://localhost:8000**
 
 4. **Para detener el servidor**:
    Presiona `Ctrl + C` en la terminal donde se está ejecutando, o corre:
@@ -32,7 +31,7 @@ Para ejecutar este proyecto, solo necesitas tener instalado:
    docker-compose down
    ```
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```text
 proyecto-final-SIF-II/
@@ -50,7 +49,7 @@ proyecto-final-SIF-II/
 └── requirements.txt            # Dependencias del proyecto
 ```
 
-## 👥 Equipo de Desarrollo (Equipo 4)
+## Equipo de Desarrollo
 - Enrique Alejandro Pereda Meraz
 - Erick Rangel Rubio
 - Raúl Esteban Aniles Macias
