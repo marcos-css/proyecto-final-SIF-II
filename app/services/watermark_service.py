@@ -110,7 +110,6 @@ def _marca_agua_imagen_invisible(contenido: bytes, texto: str, extension: str) -
         # Para PNG: usar metadatos PngInfo
         metadata = PngInfo()
         metadata.add_text("Watermark", texto)
-        metadata.add_text("Security", "DocSecure Platform")
         img.save(buffer, format="PNG", pnginfo=metadata)
     else:
         # Para JPG: insertar en el campo EXIF comment
